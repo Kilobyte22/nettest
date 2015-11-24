@@ -6,3 +6,4 @@ authors = ["Kilobyte22 <stiepen22@gmx.de>"]
 [dependencies]
 time = "0.1"
 byteorder = "0.4"
+getopts = "0.2"

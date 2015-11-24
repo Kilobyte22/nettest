@@ -5,26 +5,27 @@ use std::io::{Result, Write, Read};
 use time;
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
-const BUFFER_SIZE: usize = 1024;
+const BUFFER_SIZE: usize = 1024 * 1024;
 
 pub struct TestServer {
-    port: u16,
-    listen_address: String
+    //port: u16,
+    //listen_address: String,
+    listener: TcpListener
 }
 
 impl TestServer {
 
     pub fn new(port: u16, listen_address: &str) -> TestServer {
         TestServer {
-            port: port,
-            listen_address: listen_address.to_string()
+            //port: port,
+            //listen_address: listen_address.to_string(),
+            listener: TcpListener::bind((listen_address as &str, port)).unwrap()
         }
     }
 
     pub fn listen(self) {
-        let listener = TcpListener::bind((&self.listen_address as &str, self.port)).unwrap();
 
-        for stream in listener.incoming() {
+        for stream in self.listener.incoming() {
             self.new_connection(stream.unwrap());
         }
     }
@@ -78,6 +79,10 @@ impl Connection {
                     self.sender_commander.send(ms).unwrap();
                 },
                 2 => {} // End of test, client only
+                3 => {
+                    // Pingtest
+                    self.stream.write_u8(3u8);
+                }
                 255 => {
                     // Disconnect
                     return Ok(());
@@ -101,7 +106,7 @@ impl Connection {
                         try!(stream.write(&buf));
                         try!(stream.flush());
 
-                        if (time::precise_time_ns() - start) * 1000 >= time {
+                        if (time::precise_time_ns() - start) / 1_000_000 >= time {
                             break;
                         }
                     }
