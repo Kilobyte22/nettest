@@ -1,0 +1,8 @@
+[package]
+name = "nettest"
+version = "0.1.0"
+authors = ["Kilobyte22 <stiepen22@gmx.de>"]
+
+[dependencies]
+time = "0.1"
+byteorder = "0.4"
