@@ -31,13 +31,22 @@ impl TestServer {
     }
 
     fn new_connection(&self, stream: TcpStream) {
-        thread::spawn(|| {
-            let mut con = Connection::new(stream);
-            match con.handle() {
-                Ok(_) => {},
-                Err(x) => println!("Error while handling connection: {}", x)
-            };
-        });
+        match stream.peer_addr() {
+            Ok(addr) => {
+                println!("Incoming connection from {}", addr);
+                let addr_ = addr.clone();
+                thread::spawn(move || {
+                    let mut con = Connection::new(stream);
+                    match con.handle() {
+                        Ok(_) => println!("Connection from {} closed", addr_),
+                        Err(x) => println!("Error while reading from connection from {}: {}", addr_, x)
+                    };
+                });
+            },
+            Err(x) => {
+                println!("Could not retrieve peer address: {}", x)
+            }
+        }
     }
 }
 
@@ -52,11 +61,10 @@ impl Connection {
         let (tx, rx) = channel::<u64>();
         let s = stream.try_clone().unwrap();
         thread::spawn(|| {
+            let peer_addr =  s.peer_addr().unwrap().clone();
             match Connection::sender_runner(rx, s) {
                 Ok(_) => {}
-                Err(x) => {
-                    println!("Connection failed: {}", x)
-                }
+                Err(x) => println!("Error while writing to connection from {}: {}", peer_addr, x)
             };
         });
         Connection {
@@ -81,7 +89,7 @@ impl Connection {
                 2 => {} // End of test, client only
                 3 => {
                     // Pingtest
-                    self.stream.write_u8(3u8);
+                    try!(self.stream.write_u8(3u8));
                 }
                 255 => {
                     // Disconnect

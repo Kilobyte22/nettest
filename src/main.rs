@@ -7,7 +7,6 @@ extern crate getopts;
 mod server;
 mod client;
 
-use std::thread;
 use std::io::{stdout, Write};
 use getopts::Options;
 use std::env;

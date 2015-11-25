@@ -6,16 +6,16 @@ use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 const BUFFER_SIZE: usize = 1024 * 1024;
 
 pub struct TestClient {
-    server: String,
-    port: u16,
+    //server: String,
+    //port: u16,
     con: Connection
 }
 
 impl TestClient {
     pub fn new(server: &str, port: u16) -> TestClient {
         TestClient {
-            server: server.to_string(),
-            port: port,
+            //server: server.to_string(),
+            //port: port,
             con: Connection::new(TcpStream::connect((server, port)).unwrap())
         }
     }
