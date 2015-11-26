@@ -12,12 +12,12 @@ pub struct TestClient {
 }
 
 impl TestClient {
-    pub fn new(server: &str, port: u16) -> TestClient {
-        TestClient {
+    pub fn new(server: &str, port: u16) -> Result<TestClient> {
+        Ok(TestClient {
             //server: server.to_string(),
             //port: port,
-            con: Connection::new(TcpStream::connect((server, port)).unwrap())
-        }
+            con: Connection::new(try!(TcpStream::connect((server, port))))
+        })
     }
 
     pub fn test_upstream(&mut self, time: u64) -> Result<f64> {

@@ -21,6 +21,8 @@ fn main() {
     opts.optflag("h", "help", "Shows this text");
     opts.optflag("s", "server", "Launches a server");
     opts.optopt("c", "client", "connects to a server", "SERVER_IP");
+    opts.optopt("t", "time", "time to test for in seconds (default: 10)", "TIME");
+    opts.optopt("p", "port", "the port to listen on and connect to (default: 5001)", "PORT");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
@@ -35,12 +37,20 @@ fn main() {
 
     if matches.opt_present("s") {
         has_done_stuff = true;
-        launch_server();
+        let port = matches.opt_str("p").and_then(|p| p.parse::<u16>().ok()).unwrap_or(5001);
+        let bind = matches.opt_str("b").unwrap_or("0.0.0.0".to_string());
+        launch_server(port, &bind);
     }
 
     if matches.opt_present("c") {
         has_done_stuff = true;
-        run_client(&matches.opt_str("c").unwrap());
+        let host = &matches.opt_str("c").unwrap();
+        let port = matches.opt_str("p").and_then(|p| p.parse::<u16>().ok()).unwrap_or(5001);
+        let time = matches.opt_str("t").and_then(|p| p.parse::<u64>().ok()).unwrap_or(10_000u64);
+        match run_client(host, port, time) {
+            Ok(_) => {}
+            Err(x) => println!("Error during test: {}", x)
+        };
     }
 
     if !has_done_stuff {
@@ -49,28 +59,30 @@ fn main() {
 }
 
 fn print_usage(program: &str, opts: Options) {
-    let brief = format!("Usage: {} FILE [options]", program);
+    let brief = format!("Usage: {} [options]", program);
     print!("{}", opts.usage(&brief));
 }
 
-fn run_client(host: &str) {
-    let mut c = client::TestClient::new(host, 5001);
+fn run_client(host: &str, port: u16, time: u64) -> Result<(), ::std::io::Error> {
+    let mut c = try!(client::TestClient::new(host, port));
 
     print!("Testing ping... ");
-    stdout().flush().unwrap();
-    println!("done, {:.*} ms", 2, c.test_ping(20).unwrap());
+    try!(stdout().flush());
+    println!("done, {:.*} ms", 2, try!(c.test_ping(20)));
 
     print!("Testing download... ");
-    stdout().flush().unwrap();
-    println!("done, {:.*} mbit/s", 2, c.test_downstream(10_000).unwrap());
+    try!(stdout().flush());
+    println!("done, {:.*} mbit/s", 2, try!(c.test_downstream(time * 1_000u64)));
 
     print!("Testing upload... ");
-    stdout().flush().unwrap();
-    println!("done, {:.*} mbit/s", 2, c.test_upstream(10_000).unwrap());
+    try!(stdout().flush());
+    println!("done, {:.*} mbit/s", 2, try!(c.test_upstream(time * 1_000u64)));
+
+    Ok(())
 }
 
-fn launch_server() {
+fn launch_server(port: u16, listen: &str) {
     println!("Listening...");
-    let s = server::TestServer::new(5001, "0.0.0.0");
+    let s = server::TestServer::new(port, listen);
     s.listen();
 }
