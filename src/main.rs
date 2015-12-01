@@ -23,6 +23,7 @@ fn main() {
     opts.optopt("c", "client", "connects to a server", "SERVER_IP");
     opts.optopt("t", "time", "time to test for in seconds (default: 10)", "TIME");
     opts.optopt("p", "port", "the port to listen on and connect to (default: 5001)", "PORT");
+    opts.optopt("b", "bind", "Server bind address (default: \"0.0.0.0\")", "ADDR");
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
