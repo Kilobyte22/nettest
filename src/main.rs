@@ -1,5 +1,3 @@
-#![feature(read_exact)]
-
 extern crate time;
 extern crate byteorder;
 extern crate getopts;
