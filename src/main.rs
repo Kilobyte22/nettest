@@ -45,7 +45,7 @@ fn main() {
         has_done_stuff = true;
         let host = &matches.opt_str("c").unwrap();
         let port = matches.opt_str("p").and_then(|p| p.parse::<u16>().ok()).unwrap_or(5001);
-        let time = matches.opt_str("t").and_then(|p| p.parse::<u64>().ok()).unwrap_or(10_000u64);
+        let time = matches.opt_str("t").and_then(|p| p.parse::<u64>().ok()).unwrap_or(10u64);
         match run_client(host, port, time) {
             Ok(_) => {}
             Err(x) => println!("Error during test: {}", x)
