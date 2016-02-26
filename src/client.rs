@@ -31,8 +31,7 @@ impl TestClient {
         let bits = bytes * 8;
         let duration = ((end - start) as f64) / 1_000_000_000f64;
         let bps = bits as f64 / duration;
-        let mbit = bps / ((1024 * 1024) as f64);
-        Ok(mbit)
+        Ok(bps)
     }
 
     pub fn test_ping(&mut self, times: u32) -> Result<f64> {
@@ -54,8 +53,7 @@ impl TestClient {
         let bits = bytes * 8;
         let duration = ((end - start) as f64) / 1_000_000_000f64;
         let bps = bits as f64 / duration;
-        let mbit = bps / ((1024 * 1024) as f64);
-        Ok(mbit)
+        Ok(bps)
     }
 }
 
