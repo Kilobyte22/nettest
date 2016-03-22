@@ -1,5 +1,3 @@
-#![feature(read_exact)]
-
 extern crate time;
 extern crate byteorder;
 extern crate getopts;
@@ -12,6 +10,11 @@ use getopts::Options;
 use std::env;
 
 fn main() {
+
+    if cfg!(debug_assertions) {
+        println!("!! WARNING: You are running a not optimized version of nettest !!");
+        println!("!! Please use the --release build switch for any serious tests !!");
+    }
 
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
@@ -73,11 +76,11 @@ fn run_client(host: &str, port: u16, time: u64) -> Result<(), ::std::io::Error> 
 
     print!("Testing download... ");
     try!(stdout().flush());
-    println!("done, {:.*} mbit/s", 2, try!(c.test_downstream(time * 1_000u64)));
+    println!("done, {}", format_speed(try!(c.test_downstream(time * 1_000u64))));
 
     print!("Testing upload... ");
     try!(stdout().flush());
-    println!("done, {:.*} mbit/s", 2, try!(c.test_upstream(time * 1_000u64)));
+    println!("done, {}", format_speed(try!(c.test_upstream(time * 1_000u64))));
 
     Ok(())
 }
@@ -86,4 +89,17 @@ fn launch_server(port: u16, listen: &str) {
     println!("Listening...");
     let s = server::TestServer::new(port, listen);
     s.listen();
+}
+
+fn format_speed(speed: f64) -> String {
+    let mut speed = speed;
+    let units = ["bit/s", "kbit/s", "Mbit/s", "Gbit/s", "Tbit/s?!"];
+    let mut idx = 0;
+    while speed > 1024f64 && idx < 4 {
+        idx += 1;
+        speed /= 1024f64;
+    }
+
+    format!("{:.3} {}", speed, units[idx])
+
 }
