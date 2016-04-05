@@ -14,6 +14,7 @@ fn main() {
     if cfg!(debug_assertions) {
         println!("!! WARNING: You are running a not optimized version of nettest !!");
         println!("!! Please use the --release build switch for any serious tests !!");
+        println!("");
     }
 
     let args: Vec<String> = env::args().collect();
@@ -28,8 +29,13 @@ fn main() {
     opts.optopt("p", "port", "the port to listen on and connect to (default: 5001)", "PORT");
     opts.optopt("b", "bind", "Server bind address (default: \"0.0.0.0\")", "ADDR");
     let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m }
-        Err(f) => { panic!(f.to_string()) }
+        Ok(m) => m,
+        Err(f) => { 
+            // Unwrap is fine here because writing to stderr shouldn't fail
+            writeln!(&mut std::io::stderr(), "{}", f.to_string()).unwrap();
+            print_usage(&program, opts);
+            return;
+        }
     };
 
     if matches.opt_present("h") {
@@ -53,7 +59,7 @@ fn main() {
         let time = matches.opt_str("t").and_then(|p| p.parse::<u64>().ok()).unwrap_or(10u64);
         match run_client(host, port, time) {
             Ok(_) => {}
-            Err(x) => println!("Error during test: {}", x)
+            Err(x) => writeln!(&mut std::io::stderr(), "Error during test: {}", x).unwrap()
         };
     }
 
