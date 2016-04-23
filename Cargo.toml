@@ -2,8 +2,12 @@
 name = "nettest"
 version = "0.1.0"
 authors = ["Kilobyte22 <stiepen22@gmx.de>"]
+description = "A simple network speed test with a self hosted server"
+keywords = ["network", "util"]
+repository = "https://github.com/Kilobyte22/nettest"
+license = "MIT"
 
 [dependencies]
 time = "0.1"
-byteorder = "0.4"
+byteorder = "0.5"
 getopts = "0.2"
