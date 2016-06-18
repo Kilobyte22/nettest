@@ -33,7 +33,7 @@ impl Connection {
             match ptype {
                 PING_TEST => return Ok(()),
                 _ => {
-                    println!("Received unknown packet {}", ptype);
+                    error!("Received unknown packet {}", ptype);
                 }
             };
         }
@@ -61,7 +61,7 @@ impl Connection {
                     return Ok(bytes + 1u64);
                 },
                 _ => {
-                    println!("Unexpected command {}", command)
+                    error!("Unexpected command {}", command)
                 }
             }
         }

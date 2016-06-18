@@ -27,7 +27,7 @@ impl Connection {
             let peer_addr =  s.peer_addr().unwrap().clone();
             match Connection::sender_runner(rx, s) {
                 Ok(_) => {}
-                Err(x) => println!("Error while writing to connection from {}: {}", peer_addr, x)
+                Err(x) => error!("Error while writing to connection from {}: {}", peer_addr, x)
             };
         });
         Connection {
@@ -41,25 +41,25 @@ impl Connection {
             let command = try!(self.stream.read_u8());
             match command {
                 SEND_PAYLOAD => {
-                    println!("Received command SEND_PLAYLOAD");
+                    debug!("Received command SEND_PLAYLOAD");
                     let mut sink = [0; BUFFER_SIZE];
                     try!(self.stream.read_exact(&mut sink));
                 },
                 REQUEST_PAYLOAD => {
-                    println!("Received command REQUEST_PLAYLOAD");
+                    debug!("Received command REQUEST_PLAYLOAD");
                     let ms = try!(self.stream.read_u64::<BigEndian>());
                     self.sender_commander.send(ms).unwrap();
                 },
                 PING_TEST => {
-                    println!("Received command PING_TEST");
+                    debug!("Received command PING_TEST");
                     try!(self.stream.write_u8(PING_TEST));
                 },
                 DISCONNECT => {
-                    println!("Received command DISCONNECT");
+                    debug!("Received command DISCONNECT");
                     return Ok(());
                 },
                 _ => {
-                    println!("Unexpected command {}", command)
+                    error!("Unexpected command {}", command)
                 }
             };
         }

@@ -12,6 +12,12 @@ use std::io::{stdout, Write};
 use getopts::Options;
 use std::env;
 
+#[macro_use]
+extern crate log;
+extern crate log4rs;
+use std::default::Default;
+
+
 static DEFAULT_HOST: &'static str = "0.0.0.0";
 const DEFAULT_PORT:u16 = 5001;
 const DEFAULT_TIME:u64 = 10;
@@ -20,16 +26,18 @@ const DEFAULT_PINGS:u64 = 20;
 const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 
 fn main() {
-    if cfg!(debug_assertions) {
-        println!("!! WARNING: You are running a not optimized version of nettest !!");
-        println!("!! Please use the --release build switch for any serious tests !!");
-        println!("");
-    }
+    log4rs::init_file("log.yaml", Default::default()).unwrap();
+    println!("Logging started using 'log4rs', see log.toml for configuration details");
 
     let args: Vec<String> = env::args().collect();
     let program = args[0].clone();
 
-    println!("{} v{}", program, VERSION.unwrap_or("unknown"));
+    if cfg!(debug_assertions) {
+        warn!("Running a not optimized version. Please use the --release build switch for any serious tests !!");
+    }
+
+    info!("Version:   v{}", VERSION.unwrap_or("unknown"));
+    info!("Arguments: {:?}", args);
 
     let mut opts = Options::new();
 
@@ -43,8 +51,7 @@ fn main() {
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => m,
         Err(f) => { 
-            // Unwrap is fine here because writing to stderr shouldn't fail
-            writeln!(&mut std::io::stderr(), "{}", f.to_string()).unwrap();
+            error!("{}", f.to_string());
             print_usage(&program, opts);
             return;
         }
@@ -73,7 +80,9 @@ fn main() {
         let pings = matches.opt_str("n").and_then(|n| n.parse::<u64>().ok()).unwrap_or(DEFAULT_PINGS);
         match run_client(host, port, time, pings) {
             Ok(_) => {}
-            Err(x) => writeln!(&mut std::io::stderr(), "Error during test: {}", x).unwrap()
+            Err(x) => {
+                error!("Error during client test: {}", x);
+            }
         };
     }
 
@@ -90,20 +99,20 @@ fn print_usage(program: &str, opts: Options) {
 fn run_client(host: &str, port: u16, time: u64, pings: u64) -> Result<(), ::std::io::Error> {
     let mut c = try!(test_client::TestClient::new(host, port));
 
-    print!("Testing ping... ({} times) ", pings);
+    info!("Testing ping... ({} times) ", pings);
     try!(stdout().flush());
     let ping_time = try!(c.test_ping(pings));
-    println!("done, {:.*} ms", 2, ping_time);
+    info!("done, {:.*} ms", 2, ping_time);
 
-    print!("Testing download... ({} seconds) ", time);
+    info!("Testing download... ({} seconds) ", time);
     try!(stdout().flush());
     let download_speed = try!(c.test_downstream(time * 1_000u64));
-    println!("done, {}", format_speed(download_speed));
+    info!("done, {}", format_speed(download_speed));
 
-    print!("Testing upload... ({} seconds) ", time);
+    info!("Testing upload... ({} seconds) ", time);
     try!(stdout().flush());
     let upload_speed = try!(c.test_upstream(time * 1_000u64));
-    println!("done, {}", format_speed(upload_speed));
+    info!("done, {}", format_speed(upload_speed));
 
     Ok(())
 }
@@ -118,5 +127,4 @@ fn format_speed(speed: f64) -> String {
     }
 
     format!("{:.3} {}", speed, units[idx])
-
 }

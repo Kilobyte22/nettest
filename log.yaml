@@ -1,0 +1,14 @@
+refresh_rate: 30
+appenders:
+  stdout:
+    kind: console
+  file:
+    kind: file
+    path: "log/nettest.log"
+    encoder:
+      pattern: "{d} - {m}{n}"
+root:
+  level: info
+  appenders:
+    - stdout
+    - file

@@ -11,3 +11,5 @@ license = "MIT"
 time = "0.1"
 byteorder = "0.5"
 getopts = "0.2"
+log = "*"
+log4rs = { version = "*", features = ["yaml"] }

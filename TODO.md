@@ -1,5 +1,3 @@
-Use logger on server
-
 Output values as a summary.
 
 set a short timeout on pings
@@ -12,7 +10,6 @@ have client perform at regular intervals
 Daemonize client
 
 ## Code
-enum for commands
 flexible size of buffer size, encode it as an int in the send so receiver can detect it
 
 ## Data structure sent
