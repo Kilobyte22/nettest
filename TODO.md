@@ -1,8 +1,13 @@
+Use logger on server
+
 Output values as a summary.
+
+set a short timeout on pings
 
 option to post results to an endpoint as JSON (e.g. keen.io)
 
 Daemonize server?
+
 have client perform at regular intervals
 Daemonize client
 
@@ -28,7 +33,6 @@ Obviously only test those if ping works
 
 Every hour, send the data for the last hour (60 data points) to the central server
 - it can find your location from the IP you send from and report you online and where
-
 
 ## Device Idea
 As part of a simple Pi device with buttons

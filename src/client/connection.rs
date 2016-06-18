@@ -1,6 +1,10 @@
 use std::net::TcpStream;
 use std::io::{Result, Write, Read};
 use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
+use commands::PING_TEST;
+use commands::REQUEST_PAYLOAD;
+use commands::SEND_PAYLOAD;
+use commands::END_TEST;
 
 const BUFFER_SIZE: usize = 1024 * 1024;
 
@@ -16,18 +20,18 @@ impl Connection {
     }
 
     pub fn request_downstream(&mut self, time: u64) -> Result<()> {
-        try!(self.stream.write_u8(1u8));
+        try!(self.stream.write_u8(REQUEST_PAYLOAD));
         try!(self.stream.write_u64::<BigEndian>(time));
         Ok(())
     }
 
     pub fn ping(&mut self) -> Result<()> {
-        try!(self.stream.write_u8(3u8));
+        try!(self.stream.write_u8(PING_TEST));
         try!(self.stream.flush());
         let ptype = try!(self.stream.read_u8());
         loop {
             match ptype {
-                3 => return Ok(()),
+                PING_TEST => return Ok(()),
                 _ => {
                     println!("Received unknown packet {}", ptype);
                 }
@@ -37,7 +41,7 @@ impl Connection {
 
     pub fn send_upstream(&mut self) -> Result<()> {
         let buf = [0; BUFFER_SIZE];
-        try!(self.stream.write_u8(0u8));
+        try!(self.stream.write_u8(SEND_PAYLOAD));
         try!(self.stream.write(&buf));
         try!(self.stream.flush());
         Ok(())
@@ -49,17 +53,16 @@ impl Connection {
         loop {
             let command = try!(self.stream.read_u8());
             match command {
-                0 => {
+                SEND_PAYLOAD => {
                     try!(self.stream.read_exact(&mut buf));
                     bytes += (BUFFER_SIZE as u64) + 1;
                 },
-                1 => {
-                    // wat.
-                },
-                2 => {
+                END_TEST => {
                     return Ok(bytes + 1u64);
                 },
-                _ => {}
+                _ => {
+                    println!("Unexpected command {}", command)
+                }
             }
         }
     }

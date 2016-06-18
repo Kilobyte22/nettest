@@ -6,6 +6,7 @@ mod server;
 mod client;
 use client::test_client;
 use server::test_server;
+mod commands;
 
 use std::io::{stdout, Write};
 use getopts::Options;
