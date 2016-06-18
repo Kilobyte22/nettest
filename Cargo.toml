@@ -1,6 +1,6 @@
 [package]
 name = "nettest"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Kilobyte22 <stiepen22@gmx.de>"]
 description = "A simple network speed test with a self hosted server"
 keywords = ["network", "util"]

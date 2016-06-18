@@ -8,22 +8,23 @@ use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 const BUFFER_SIZE: usize = 1024 * 1024;
 
 pub struct TestServer {
-    //port: u16,
-    //listen_address: String,
-    listener: TcpListener
+    listener: TcpListener,
+    listen_address: String,
+    listen_port: u16
 }
 
 impl TestServer {
 
-    pub fn new(port: u16, listen_address: &str) -> TestServer {
+    pub fn new(port: u16, address: &str) -> TestServer {
         TestServer {
-            //port: port,
-            //listen_address: listen_address.to_string(),
-            listener: TcpListener::bind((listen_address as &str, port)).unwrap()
+            listener: TcpListener::bind((address as &str, port)).unwrap(),
+            listen_address: address.to_string(),
+            listen_port: port
         }
     }
 
     pub fn listen(self) {
+        println!("Listening on host: {} port {}", self.listen_address, self.listen_port);
 
         for stream in self.listener.incoming() {
             self.new_connection(stream.unwrap());
@@ -74,28 +75,26 @@ impl Connection {
     }
 
     pub fn handle(&mut self) -> Result<()> {
-        let mut sink = [0; BUFFER_SIZE];
         loop {
             let cmd = try!(self.stream.read_u8());
             match cmd {
                 0 => {
+                    let mut sink = [0; BUFFER_SIZE];
                     try!(self.stream.read_exact(&mut sink));
                 },
-                1 => {
-                    // Request for Payload
+                1 => { // Request for Payload
                     let ms = try!(self.stream.read_u64::<BigEndian>());
                     self.sender_commander.send(ms).unwrap();
                 },
-                2 => {} // End of test, client only
-                3 => {
-                    // Pingtest
+                3 => { // Pingtest
                     try!(self.stream.write_u8(3u8));
-                }
-                255 => {
-                    // Disconnect
+                },
+                255 => { // Disconnect
                     return Ok(());
                 },
-                _ => {}
+                _ => {
+                    println!("Unexpected command {}", cmd);
+                }
             };
         }
     }

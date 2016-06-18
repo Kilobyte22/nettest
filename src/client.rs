@@ -6,20 +6,29 @@ use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 const BUFFER_SIZE: usize = 1024 * 1024;
 
 pub struct TestClient {
-    //server: String,
-    //port: u16,
     con: Connection
 }
 
+// The intention is that the client is silent, and any output is done by who invokes it
 impl TestClient {
     pub fn new(server: &str, port: u16) -> Result<TestClient> {
         Ok(TestClient {
-            //server: server.to_string(),
-            //port: port,
             con: Connection::new(try!(TcpStream::connect((server, port))))
         })
     }
 
+    pub fn test_ping(&mut self, times: u64) -> Result<f64> {
+        let mut rtt = 0f64;
+        for _ in 0..times {
+            let start = time::precise_time_ns();
+            try!(self.con.ping());
+            let end = time::precise_time_ns();
+            rtt += ((end - start) as f64) / 1_000_000f64;
+        }
+        Ok(rtt / (times as f64))
+    }
+
+    // Time is in milliseconds
     pub fn test_upstream(&mut self, time: u64) -> Result<f64> {
         let start = time::precise_time_ns();
         let mut bytes = 0u64;
@@ -34,17 +43,7 @@ impl TestClient {
         Ok(bps)
     }
 
-    pub fn test_ping(&mut self, times: u32) -> Result<f64> {
-        let mut rtt = 0f64;
-        for _ in 0..times {
-            let start = time::precise_time_ns();
-            try!(self.con.ping());
-            let end = time::precise_time_ns();
-            rtt += ((end - start) as f64) / 1_000_000f64;
-        }
-        Ok(rtt / (times as f64))
-    }
-
+    // Time is in milliseconds
     pub fn test_downstream(&mut self, time: u64) -> Result<f64> {
         try!(self.con.request_downstream(time));
         let start = time::precise_time_ns();
@@ -100,8 +99,8 @@ impl Connection {
         let mut buf = [0u8; BUFFER_SIZE];
         let mut bytes = 0u64;
         loop {
-            let ptype = try!(self.stream.read_u8());
-            match ptype {
+            let command = try!(self.stream.read_u8());
+            match command {
                 0 => {
                     try!(self.stream.read_exact(&mut buf));
                     bytes += (BUFFER_SIZE as u64) + 1;
