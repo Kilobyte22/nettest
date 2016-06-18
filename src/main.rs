@@ -4,6 +4,8 @@ extern crate getopts;
 
 mod server;
 mod client;
+use client::test_client;
+use server::test_server;
 
 use std::io::{stdout, Write};
 use getopts::Options;
@@ -58,7 +60,7 @@ fn main() {
         has_done_stuff = true;
         let port = matches.opt_str("p").and_then(|p| p.parse::<u16>().ok()).unwrap_or(DEFAULT_PORT);
         let bind = matches.opt_str("b").unwrap_or(DEFAULT_HOST.to_string());
-        let s = server::TestServer::new(port, &bind);
+        let s = test_server::TestServer::new(port, &bind);
         s.listen();
     }
 
@@ -85,7 +87,7 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn run_client(host: &str, port: u16, time: u64, pings: u64) -> Result<(), ::std::io::Error> {
-    let mut c = try!(client::TestClient::new(host, port));
+    let mut c = try!(test_client::TestClient::new(host, port));
 
     print!("Testing ping... ({} times) ", pings);
     try!(stdout().flush());
