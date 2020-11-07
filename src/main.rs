@@ -13,7 +13,7 @@ fn main() {
     if cfg!(debug_assertions) {
         println!("!! WARNING: You are running a not optimized version of nettest !!");
         println!("!! Please use the --release build switch for any serious tests !!");
-        println!("");
+        println!();
     }
 
     let args: Vec<String> = env::args().collect();
@@ -65,7 +65,9 @@ fn main() {
             .opt_str("p")
             .and_then(|p| p.parse::<u16>().ok())
             .unwrap_or(5001);
-        let bind = matches.opt_str("b").unwrap_or("0.0.0.0".to_string());
+        let bind = matches
+            .opt_str("b")
+            .unwrap_or_else(|| "0.0.0.0".to_string());
         launch_server(port, &bind);
     }
 

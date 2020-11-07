@@ -33,14 +33,13 @@ impl TestServer {
         match stream.peer_addr() {
             Ok(addr) => {
                 println!("Incoming connection from {}", addr);
-                let addr_ = addr.clone();
                 thread::spawn(move || {
                     let mut con = Connection::new(stream);
                     match con.handle() {
-                        Ok(_) => println!("Connection from {} closed", addr_),
+                        Ok(_) => println!("Connection from {} closed", addr),
                         Err(x) => println!(
                             "Error while reading from connection from {}: {}",
-                            addr_, x
+                            addr, x
                         ),
                     };
                 });
@@ -56,11 +55,11 @@ struct Connection {
 }
 
 impl Connection {
-    fn new<'b>(stream: TcpStream) -> Connection {
+    fn new(stream: TcpStream) -> Connection {
         let (tx, rx) = channel::<u64>();
         let s = stream.try_clone().unwrap();
         thread::spawn(|| {
-            let peer_addr = s.peer_addr().unwrap().clone();
+            let peer_addr = s.peer_addr().unwrap();
             match Connection::sender_runner(rx, s) {
                 Ok(_) => {}
                 Err(x) => println!(
@@ -70,7 +69,7 @@ impl Connection {
             };
         });
         Connection {
-            stream: stream,
+            stream,
             sender_commander: tx,
         }
     }
@@ -111,7 +110,7 @@ impl Connection {
                     let start = time::precise_time_ns();
                     loop {
                         stream.write_u8(0u8)?;
-                        stream.write(&buf)?;
+                        stream.write_all(&buf)?;
                         stream.flush()?;
 
                         if (time::precise_time_ns() - start) / 1_000_000

@@ -63,7 +63,7 @@ struct Connection {
 
 impl Connection {
     fn new(stream: TcpStream) -> Connection {
-        Connection { stream: stream }
+        Connection { stream }
     }
 
     fn request_downstream(&mut self, time: u64) -> Result<()> {
@@ -89,7 +89,7 @@ impl Connection {
     fn send_upstream(&mut self) -> Result<()> {
         let buf = [0; BUFFER_SIZE];
         self.stream.write_u8(0u8)?;
-        self.stream.write(&buf)?;
+        self.stream.write_all(&buf)?;
         self.stream.flush()?;
         Ok(())
     }
