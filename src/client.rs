@@ -1,14 +1,14 @@
+use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
+use std::io::{Read, Result, Write};
 use std::net::TcpStream;
-use std::io::{Result, Write, Read};
 use time;
-use byteorder::{ReadBytesExt, WriteBytesExt, BigEndian};
 
 const BUFFER_SIZE: usize = 1024 * 1024;
 
 pub struct TestClient {
     //server: String,
     //port: u16,
-    con: Connection
+    con: Connection,
 }
 
 impl TestClient {
@@ -16,7 +16,7 @@ impl TestClient {
         Ok(TestClient {
             //server: server.to_string(),
             //port: port,
-            con: Connection::new(try!(TcpStream::connect((server, port))))
+            con: Connection::new(try!(TcpStream::connect((server, port)))),
         })
     }
 
@@ -58,14 +58,12 @@ impl TestClient {
 }
 
 struct Connection {
-    stream: TcpStream
+    stream: TcpStream,
 }
 
 impl Connection {
     fn new(stream: TcpStream) -> Connection {
-        Connection {
-            stream: stream
-        }
+        Connection { stream: stream }
     }
 
     fn request_downstream(&mut self, time: u64) -> Result<()> {
@@ -105,13 +103,13 @@ impl Connection {
                 0 => {
                     try!(self.stream.read_exact(&mut buf));
                     bytes += (BUFFER_SIZE as u64) + 1;
-                },
+                }
                 1 => {
                     // wat.
-                },
+                }
                 2 => {
                     return Ok(bytes + 1u64);
-                },
+                }
                 _ => {}
             }
         }
