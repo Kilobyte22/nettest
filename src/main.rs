@@ -1,7 +1,3 @@
-extern crate byteorder;
-extern crate getopts;
-extern crate time;
-
 mod client;
 mod server;
 

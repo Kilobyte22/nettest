@@ -3,7 +3,6 @@ use std::io::{Read, Result, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
-use time;
 
 const BUFFER_SIZE: usize = 1024 * 1024;
 

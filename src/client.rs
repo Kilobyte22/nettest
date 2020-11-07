@@ -1,7 +1,6 @@
 use byteorder::{BigEndian, ReadBytesExt, WriteBytesExt};
 use std::io::{Read, Result, Write};
 use std::net::TcpStream;
-use time;
 
 const BUFFER_SIZE: usize = 1024 * 1024;
 
