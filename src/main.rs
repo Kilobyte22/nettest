@@ -104,25 +104,22 @@ fn run_client(
     port: u16,
     time: u64,
 ) -> Result<(), ::std::io::Error> {
-    let mut c = try!(client::TestClient::new(host, port));
+    let mut c = client::TestClient::new(host, port)?;
 
     print!("Testing ping... ");
-    try!(stdout().flush());
-    println!("done, {:.*} ms", 2, try!(c.test_ping(20)));
+    stdout().flush()?;
+    println!("done, {:.*} ms", 2, c.test_ping(20)?);
 
     print!("Testing download... ");
-    try!(stdout().flush());
+    stdout().flush()?;
     println!(
         "done, {}",
-        format_speed(try!(c.test_downstream(time * 1_000u64)))
+        format_speed(c.test_downstream(time * 1_000u64)?)
     );
 
     print!("Testing upload... ");
-    try!(stdout().flush());
-    println!(
-        "done, {}",
-        format_speed(try!(c.test_upstream(time * 1_000u64)))
-    );
+    stdout().flush()?;
+    println!("done, {}", format_speed(c.test_upstream(time * 1_000u64)?));
 
     Ok(())
 }

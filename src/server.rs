@@ -78,20 +78,20 @@ impl Connection {
     pub fn handle(&mut self) -> Result<()> {
         let mut sink = [0; BUFFER_SIZE];
         loop {
-            let cmd = try!(self.stream.read_u8());
+            let cmd = self.stream.read_u8()?;
             match cmd {
                 0 => {
-                    try!(self.stream.read_exact(&mut sink));
+                    self.stream.read_exact(&mut sink)?;
                 }
                 1 => {
                     // Request for Payload
-                    let ms = try!(self.stream.read_u64::<BigEndian>());
+                    let ms = self.stream.read_u64::<BigEndian>()?;
                     self.sender_commander.send(ms).unwrap();
                 }
                 2 => {} // End of test, client only
                 3 => {
                     // Pingtest
-                    try!(self.stream.write_u8(3u8));
+                    self.stream.write_u8(3u8)?;
                 }
                 255 => {
                     // Disconnect
@@ -110,9 +110,9 @@ impl Connection {
                 Ok(time) => {
                     let start = time::precise_time_ns();
                     loop {
-                        try!(stream.write_u8(0u8));
-                        try!(stream.write(&buf));
-                        try!(stream.flush());
+                        stream.write_u8(0u8)?;
+                        stream.write(&buf)?;
+                        stream.flush()?;
 
                         if (time::precise_time_ns() - start) / 1_000_000
                             >= time
@@ -120,7 +120,7 @@ impl Connection {
                             break;
                         }
                     }
-                    try!(stream.write_u8(2))
+                    stream.write_u8(2)?
                 }
                 Err(_) => return Ok(()),
             }

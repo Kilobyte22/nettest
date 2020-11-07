@@ -16,7 +16,7 @@ impl TestClient {
         Ok(TestClient {
             //server: server.to_string(),
             //port: port,
-            con: Connection::new(try!(TcpStream::connect((server, port)))),
+            con: Connection::new(TcpStream::connect((server, port))?),
         })
     }
 
@@ -24,7 +24,7 @@ impl TestClient {
         let start = time::precise_time_ns();
         let mut bytes = 0u64;
         while (time::precise_time_ns() - start) / 1_000_000 < time {
-            try!(self.con.send_upstream());
+            self.con.send_upstream()?;
             bytes += (BUFFER_SIZE as u64) + 1u64;
         }
         let end = time::precise_time_ns();
@@ -38,7 +38,7 @@ impl TestClient {
         let mut rtt = 0f64;
         for _ in 0..times {
             let start = time::precise_time_ns();
-            try!(self.con.ping());
+            self.con.ping()?;
             let end = time::precise_time_ns();
             rtt += ((end - start) as f64) / 1_000_000f64;
         }
@@ -46,9 +46,9 @@ impl TestClient {
     }
 
     pub fn test_downstream(&mut self, time: u64) -> Result<f64> {
-        try!(self.con.request_downstream(time));
+        self.con.request_downstream(time)?;
         let start = time::precise_time_ns();
-        let bytes = try!(self.con.process_request());
+        let bytes = self.con.process_request()?;
         let end = time::precise_time_ns();
         let bits = bytes * 8;
         let duration = ((end - start) as f64) / 1_000_000_000f64;
@@ -67,15 +67,15 @@ impl Connection {
     }
 
     fn request_downstream(&mut self, time: u64) -> Result<()> {
-        try!(self.stream.write_u8(1u8));
-        try!(self.stream.write_u64::<BigEndian>(time));
+        self.stream.write_u8(1u8)?;
+        self.stream.write_u64::<BigEndian>(time)?;
         Ok(())
     }
 
     fn ping(&mut self) -> Result<()> {
-        try!(self.stream.write_u8(3u8));
-        try!(self.stream.flush());
-        let ptype = try!(self.stream.read_u8());
+        self.stream.write_u8(3u8)?;
+        self.stream.flush()?;
+        let ptype = self.stream.read_u8()?;
         loop {
             match ptype {
                 3 => return Ok(()),
@@ -88,9 +88,9 @@ impl Connection {
 
     fn send_upstream(&mut self) -> Result<()> {
         let buf = [0; BUFFER_SIZE];
-        try!(self.stream.write_u8(0u8));
-        try!(self.stream.write(&buf));
-        try!(self.stream.flush());
+        self.stream.write_u8(0u8)?;
+        self.stream.write(&buf)?;
+        self.stream.flush()?;
         Ok(())
     }
 
@@ -98,10 +98,10 @@ impl Connection {
         let mut buf = [0u8; BUFFER_SIZE];
         let mut bytes = 0u64;
         loop {
-            let ptype = try!(self.stream.read_u8());
+            let ptype = self.stream.read_u8()?;
             match ptype {
                 0 => {
-                    try!(self.stream.read_exact(&mut buf));
+                    self.stream.read_exact(&mut buf)?;
                     bytes += (BUFFER_SIZE as u64) + 1;
                 }
                 1 => {
@@ -116,7 +116,7 @@ impl Connection {
     }
 
     fn shutdown(&mut self) -> Result<()> {
-        try!(self.stream.write_u8(255));
+        self.stream.write_u8(255)?;
         Ok(())
     }
 }
