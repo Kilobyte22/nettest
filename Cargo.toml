@@ -6,6 +6,7 @@ description = "A simple network speed test with a self hosted server"
 keywords = ["network", "util"]
 repository = "https://github.com/Kilobyte22/nettest"
 license = "MIT"
+edition = "2018"
 
 [dependencies]
 time = "0.1"
